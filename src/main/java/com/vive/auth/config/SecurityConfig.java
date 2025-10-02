@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/api/auth/health",
                                 "/api/auth/signup",
                                 "/api/auth/signin",
+                                "/api/admin/**",
                                 "/oauth2/**",
                                 "/login/**",
                                 "/h2-console/**",
