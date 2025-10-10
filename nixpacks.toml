@@ -1,8 +1,11 @@
 [phases.setup]
 nixPkgs = ['openjdk21']
 
+[phases.install]
+cmds = ['chmod +x ./gradlew']
+
 [phases.build]
-cmds = ['./gradlew clean build -x test']
+cmds = ['./gradlew clean bootJar -x test --no-daemon --info']
 
 [start]
-cmd = 'java -Dserver.port=$PORT -Dspring.profiles.active=railway -jar build/libs/jhlee-vive-coding-be-0.0.1-SNAPSHOT.jar'
+cmd = 'java -Dserver.port=$PORT -Dspring.profiles.active=railway -jar $(ls build/libs/*-SNAPSHOT.jar | grep -v plain)'
