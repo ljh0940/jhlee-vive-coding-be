@@ -73,11 +73,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Railway 환경 변수에서 허용할 Origin 가져오기
-        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS",
-            "http://localhost:3000,http://localhost:8080,https://*.up.railway.app,https://*.vercel.app");
-
-        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+        // 모든 Origin 허용
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
