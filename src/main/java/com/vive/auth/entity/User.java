@@ -51,10 +51,22 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean active = true;
+
     public User update(String name, String picture) {
         this.name = name;
         this.picture = picture;
         return this;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void activate() {
+        this.active = true;
     }
 
     public enum Role {
