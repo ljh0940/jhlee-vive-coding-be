@@ -51,7 +51,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     @Builder.Default
     private Boolean active = true;
 
