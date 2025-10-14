@@ -17,6 +17,12 @@ spring:
     console:
       enabled: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
 logging:
   level:
     com.vive.auth: INFO

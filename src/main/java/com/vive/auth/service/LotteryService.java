@@ -31,16 +31,16 @@ public class LotteryService {
     private static final LocalDate FIRST_DRAW_DATE = LocalDate.of(2002, 12, 7);
 
     /**
-     * 최근 5개 로또 당첨번호 조회 (DB에서)
+     * 최근 5개 로또 당첨번호 조회 (Redis에서)
      */
     public LotteryResponse getRecentLotteryNumbers() {
-        log.info("Fetching recent lottery numbers from database...");
+        log.info("Fetching recent lottery numbers from Redis...");
 
         try {
-            List<LotteryNumber> dbNumbers = lotteryNumberRepository.findTop5ByOrderByRoundDesc();
+            List<LotteryNumber> allNumbers = lotteryNumberRepository.findAll();
 
-            if (dbNumbers.isEmpty()) {
-                log.warn("No lottery data found in database, using fallback data");
+            if (allNumbers.isEmpty()) {
+                log.warn("No lottery data found in Redis, using fallback data");
                 return LotteryResponse.builder()
                         .success(false)
                         .data(getFallbackData())
@@ -49,11 +49,14 @@ public class LotteryService {
                         .build();
             }
 
-            List<LotteryResponse.LotteryNumber> results = dbNumbers.stream()
+            // round로 정렬하고 최근 5개만 가져오기
+            List<LotteryResponse.LotteryNumber> results = allNumbers.stream()
+                    .sorted((a, b) -> b.getRound().compareTo(a.getRound()))
+                    .limit(5)
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
-            log.info("Successfully fetched {} lottery numbers from database", results.size());
+            log.info("Successfully fetched {} lottery numbers from Redis", results.size());
             return LotteryResponse.builder()
                     .success(true)
                     .data(results)
@@ -61,7 +64,7 @@ public class LotteryService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error fetching lottery numbers from database", e);
+            log.error("Error fetching lottery numbers from Redis", e);
             return LotteryResponse.builder()
                     .success(false)
                     .data(getFallbackData())
@@ -94,8 +97,9 @@ public class LotteryService {
             LotteryResponse.LotteryNumber lotteryData = fetchLotteryNumberFromApi(round);
 
             if (lotteryData != null) {
-                // DB에 저장
+                // Redis에 저장
                 LotteryNumber entity = LotteryNumber.builder()
+                        .id("lottery:" + lotteryData.getRound())
                         .round(lotteryData.getRound())
                         .drawDate(lotteryData.getDate())
                         .number1(lotteryData.getNumbers().get(0))
@@ -105,10 +109,11 @@ public class LotteryService {
                         .number5(lotteryData.getNumbers().get(4))
                         .number6(lotteryData.getNumbers().get(5))
                         .bonusNumber(lotteryData.getBonus())
+                        .createdAt(LocalDateTime.now())
                         .build();
 
                 lotteryNumberRepository.save(entity);
-                log.info("Saved lottery number for round {}", round);
+                log.info("Saved lottery number for round {} in Redis", round);
             }
         }
 
