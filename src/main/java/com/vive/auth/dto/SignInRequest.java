@@ -13,9 +13,8 @@ import lombok.NoArgsConstructor;
 @Schema(description = "로그인 요청")
 public class SignInRequest {
 
-    @Schema(description = "이메일 주소", example = "user@example.com", required = true)
-    @NotBlank(message = "이메일은 필수입니다")
-    @Email(message = "유효한 이메일 형식이어야 합니다")
+    @Schema(description = "이메일 또는 아이디", example = "user@example.com", required = true)
+    @NotBlank(message = "이메일/아이디는 필수입니다")
     private String email;
 
     @Schema(description = "비밀번호", example = "password123", required = true)
