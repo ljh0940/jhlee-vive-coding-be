@@ -41,8 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private OAuth2UserInfo getOAuth2UserInfo(String registrationId, Map<String, Object> attributes) {
         return switch (registrationId.toLowerCase()) {
-            case "google" -> new GoogleOAuth2UserInfo(attributes);
-            case "github" -> new GithubOAuth2UserInfo(attributes);
+            case "kakao" -> new KakaoOAuth2UserInfo(attributes);
             default -> throw new IllegalArgumentException("Unsupported provider: " + registrationId);
         };
     }

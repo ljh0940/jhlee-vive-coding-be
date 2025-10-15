@@ -23,8 +23,8 @@ class UserRepositoryTest {
         User user = User.builder()
                 .email("test@example.com")
                 .name("Test User")
-                .provider(User.Provider.GOOGLE)
-                .providerId("google123")
+                .provider(User.Provider.KAKAO)
+                .providerId("kakao123")
                 .role(User.Role.USER)
                 .build();
         userRepository.save(user);
@@ -45,20 +45,20 @@ class UserRepositoryTest {
         User user = User.builder()
                 .email("test@example.com")
                 .name("Test User")
-                .provider(User.Provider.GITHUB)
-                .providerId("github456")
+                .provider(User.Provider.KAKAO)
+                .providerId("kakao456")
                 .role(User.Role.USER)
                 .build();
         userRepository.save(user);
 
         // when
         Optional<User> foundUser = userRepository.findByProviderAndProviderId(
-                User.Provider.GITHUB, "github456");
+                User.Provider.KAKAO, "kakao456");
 
         // then
         assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getProvider()).isEqualTo(User.Provider.GITHUB);
-        assertThat(foundUser.get().getProviderId()).isEqualTo("github456");
+        assertThat(foundUser.get().getProvider()).isEqualTo(User.Provider.KAKAO);
+        assertThat(foundUser.get().getProviderId()).isEqualTo("kakao456");
     }
 
     @Test
@@ -68,8 +68,8 @@ class UserRepositoryTest {
         User user = User.builder()
                 .email("test@example.com")
                 .name("Test User")
-                .provider(User.Provider.GOOGLE)
-                .providerId("google123")
+                .provider(User.Provider.KAKAO)
+                .providerId("kakao123")
                 .role(User.Role.USER)
                 .build();
         userRepository.save(user);
@@ -91,8 +91,8 @@ class UserRepositoryTest {
                 .email("test@example.com")
                 .name("Test User")
                 .picture("old-picture.jpg")
-                .provider(User.Provider.GOOGLE)
-                .providerId("google123")
+                .provider(User.Provider.KAKAO)
+                .providerId("kakao123")
                 .role(User.Role.USER)
                 .build();
         User savedUser = userRepository.save(user);

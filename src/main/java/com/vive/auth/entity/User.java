@@ -74,6 +74,6 @@ public class User {
     }
 
     public enum Provider {
-        GOOGLE, GITHUB, LOCAL
+        KAKAO, LOCAL
     }
 }

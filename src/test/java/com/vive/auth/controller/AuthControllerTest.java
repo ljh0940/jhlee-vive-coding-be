@@ -44,8 +44,8 @@ class AuthControllerTest {
                 .email("test@example.com")
                 .name("Test User")
                 .picture("https://example.com/picture.jpg")
-                .provider(User.Provider.GOOGLE)
-                .providerId("google123")
+                .provider(User.Provider.KAKAO)
+                .providerId("kakao123")
                 .role(User.Role.USER)
                 .build();
 
@@ -69,7 +69,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.name").value("Test User"))
                 .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.provider").value("GOOGLE"));
+                .andExpect(jsonPath("$.provider").value("KAKAO"));
     }
 
     @Test
