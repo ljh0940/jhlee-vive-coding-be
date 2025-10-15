@@ -4,7 +4,7 @@
 
 ## 프로젝트 개요
 
-OAuth2 (Google, GitHub), 이메일/비밀번호 인증, JWT 기반 인증을 제공하는 Spring Boot 백엔드 서버입니다. React 프론트엔드 (`jhlee-vive-coding`)와 함께 작동하도록 설계되었습니다.
+OAuth2 (Kakao), 이메일/비밀번호 인증, JWT 기반 인증을 제공하는 Spring Boot 백엔드 서버입니다. React 프론트엔드 (`jhlee-vive-coding`)와 함께 작동하도록 설계되었습니다.
 
 ## 명령어
 
@@ -47,12 +47,12 @@ OAuth2 (Google, GitHub), 이메일/비밀번호 인증, JWT 기반 인증을 제
    - `CustomUserDetailsService`가 DB에서 사용자 로드 및 비밀번호 확인
    - JWT access/refresh 토큰 생성 및 반환
 
-#### 2. OAuth2 인증 (Google, GitHub)
+#### 2. OAuth2 인증 (Kakao)
 
 1. **OAuth2 로그인 시작**: 프론트엔드가 `/oauth2/authorization/{provider}`로 리다이렉트
 2. **사용자 정보 로드**: `CustomOAuth2UserService`가 OAuth2 제공자로부터 사용자 정보를 가져옴
 3. **사용자 저장/업데이트**:
-   - `GoogleOAuth2UserInfo` 또는 `GithubOAuth2UserInfo`가 제공자별 속성 추출
+   - `KakaoOAuth2UserInfo`가 제공자별 속성 추출
    - `UserRepository`를 통해 User 엔티티 저장 또는 기존 사용자 업데이트
 4. **JWT 토큰 생성**: `OAuth2AuthenticationSuccessHandler`가 성공 시:
    - `JwtTokenProvider`를 사용하여 access token과 refresh token 생성
@@ -87,10 +87,8 @@ OAuth2 (Google, GitHub), 이메일/비밀번호 인증, JWT 기반 인증을 제
 OAuth2 기능을 위해 다음 환경 변수 필요:
 
 ```bash
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
+KAKAO_CLIENT_ID=your-kakao-client-id
+KAKAO_CLIENT_SECRET=your-kakao-client-secret
 JWT_SECRET=your-256-bit-secret-key  # 최소 256비트
 OAUTH2_REDIRECT_URI=http://localhost:3000/oauth2/redirect  # 선택사항
 ```
@@ -102,8 +100,7 @@ OAUTH2_REDIRECT_URI=http://localhost:3000/oauth2/redirect  # 선택사항
 **인증 (공개)**:
 - `POST /api/auth/signup` - 이메일/비밀번호로 회원가입 (JWT 토큰 반환)
 - `POST /api/auth/signin` - 이메일/비밀번호로 로그인 (JWT 토큰 반환)
-- `GET /oauth2/authorization/google` - Google OAuth2 로그인 시작
-- `GET /oauth2/authorization/github` - GitHub OAuth2 로그인 시작
+- `GET /oauth2/authorization/kakao` - Kakao OAuth2 로그인 시작
 - `GET /api/auth/health` - 헬스 체크
 
 **사용자 (보호됨)**:
@@ -144,7 +141,7 @@ OAUTH2_REDIRECT_URI=http://localhost:3000/oauth2/redirect  # 선택사항
 4. 토큰을 localStorage 또는 상태 관리에 저장
 5. 보호된 API 호출 시 `Authorization: Bearer {accessToken}` 헤더 포함
 
-#### OAuth2 인증 (Google, GitHub)
+#### OAuth2 인증 (Kakao)
 1. 사용자를 `/oauth2/authorization/{provider}`로 리다이렉트
 2. OAuth2 성공 후 쿼리 파라미터에서 토큰 추출 (`accessToken`, `refreshToken`)
 3. 토큰을 localStorage 또는 상태 관리에 저장
