@@ -1,5 +1,15 @@
--- Drop existing constraint if exists
-ALTER TABLE IF EXISTS users DROP CONSTRAINT IF EXISTS users_provider_check;
+-- Drop all existing constraints first
+DO $$
+BEGIN
+    -- Drop check constraints if they exist
+    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_provider_check') THEN
+        ALTER TABLE users DROP CONSTRAINT users_provider_check;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_role_check') THEN
+        ALTER TABLE users DROP CONSTRAINT users_role_check;
+    END IF;
+END $$;
 
 -- Drop and recreate users table with correct schema
 DROP TABLE IF EXISTS users CASCADE;
@@ -20,5 +30,5 @@ CREATE TABLE users (
     CONSTRAINT users_provider_check CHECK (provider IN ('KAKAO', 'LOCAL'))
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_provider ON users(provider);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_provider ON users(provider);
