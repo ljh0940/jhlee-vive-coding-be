@@ -18,10 +18,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "Authentication", description = "Authentication API")
 @RestController
@@ -31,6 +35,9 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final AuthService authService;
+
+    @Value("${app.oauth2.redirect-uri:http://localhost:3000/oauth2/redirect}")
+    private String oauth2RedirectUri;
 
     @Operation(summary = "Get current user", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/me")
@@ -45,6 +52,15 @@ public class AuthController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
+    }
+
+    @Operation(summary = "OAuth2 config check")
+    @GetMapping("/oauth2-config")
+    public ResponseEntity<Map<String, String>> oauth2Config() {
+        Map<String, String> config = new HashMap<>();
+        config.put("oauth2RedirectUri", oauth2RedirectUri);
+        config.put("status", "loaded");
+        return ResponseEntity.ok(config);
     }
 
     @Operation(
