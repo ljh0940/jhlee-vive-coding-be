@@ -21,6 +21,8 @@ spring:
       enabled: true
       path: /h2-console
 
+  flyway:
+    enabled: false
 
   security:
     oauth2:
