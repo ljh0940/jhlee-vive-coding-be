@@ -60,6 +60,11 @@ jwt:
 
 server:
   url: https://jhlee-vive-coding-be-production.up.railway.app
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      protocol-header: x-forwarded-proto
+      remote-ip-header: x-forwarded-for
 
 logging:
   level:
