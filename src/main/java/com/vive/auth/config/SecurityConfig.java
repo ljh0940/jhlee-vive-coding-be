@@ -47,9 +47,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
-                                "/api/auth/health",
-                                "/api/auth/signup",
-                                "/api/auth/signin",
+                                "/error",
+                                "/api/auth/**",
                                 "/api/lottery/**",
                                 "/oauth2/**",
                                 "/login/**",
@@ -62,6 +61,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/kakao")
                         .authorizationEndpoint(authorization -> authorization
                                 .baseUri("/oauth2/authorization"))
                         .redirectionEndpoint(redirection -> redirection
