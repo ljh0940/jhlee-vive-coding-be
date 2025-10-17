@@ -41,12 +41,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("Set authentication for user: {}", userEmail);
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // OAuth2 엔드포인트는 JWT 필터를 거치지 않도록
+        return path.startsWith("/oauth2/") ||
+               path.startsWith("/login/oauth2/") ||
+               path.equals("/api/auth/health") ||
+               path.equals("/api/auth/signup") ||
+               path.equals("/api/auth/signin");
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
