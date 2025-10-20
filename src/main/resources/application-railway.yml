@@ -48,7 +48,7 @@ spring:
 
 app:
   oauth2:
-    redirect-uri: ${OAUTH2_REDIRECT_URI}
+    redirect-uri: ${OAUTH2_REDIRECT_URI:https://jhlee-vive-coding.vercel.app/oauth2/redirect}
 
 jwt:
   secret: ${JWT_SECRET}
