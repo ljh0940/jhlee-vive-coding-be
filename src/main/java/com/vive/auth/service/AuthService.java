@@ -28,8 +28,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponse signUp(SignUpRequest request) {
-        // 이메일 중복 체크
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // 이메일 + provider 중복 체크 (LOCAL 계정만)
+        if (userRepository.existsByEmailAndProvider(request.getEmail(), User.Provider.LOCAL)) {
             throw new RuntimeException("이미 존재하는 이메일입니다");
         }
 
@@ -72,8 +72,8 @@ public class AuthService {
                 )
         );
 
-        // 마지막 로그인 시간 업데이트
-        User user = userRepository.findByEmail(request.getEmail())
+        // 마지막 로그인 시간 업데이트 (LOCAL 계정만)
+        User user = userRepository.findByEmailAndProvider(request.getEmail(), User.Provider.LOCAL)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
         user.updateLastLogin();
         userRepository.save(user);

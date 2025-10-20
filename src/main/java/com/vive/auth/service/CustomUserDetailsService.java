@@ -19,7 +19,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        // LOCAL 계정으로 먼저 찾기 (로그인은 로컬 계정만 가능)
+        User user = userRepository.findByEmailAndProvider(email, User.Provider.LOCAL)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         // 비활성화된 사용자는 로그인 불가

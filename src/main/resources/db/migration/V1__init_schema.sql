@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL,
     password VARCHAR(255),
     name VARCHAR(255) NOT NULL,
     picture VARCHAR(500),
@@ -28,7 +28,8 @@ CREATE TABLE users (
     last_login_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
     CONSTRAINT users_role_check CHECK (role IN ('USER', 'ADMIN')),
-    CONSTRAINT users_provider_check CHECK (provider IN ('KAKAO', 'LOCAL'))
+    CONSTRAINT users_provider_check CHECK (provider IN ('KAKAO', 'LOCAL')),
+    CONSTRAINT uk_email_provider UNIQUE (email, provider)
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
