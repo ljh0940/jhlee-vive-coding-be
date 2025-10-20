@@ -48,8 +48,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private User saveOrUpdate(OAuth2UserInfo oAuth2UserInfo, String registrationId) {
         User.Provider provider = User.Provider.valueOf(registrationId.toUpperCase());
 
+        log.info("OAuth2 user info - ID: {}, Name: {}, Email: {}",
+                oAuth2UserInfo.getId(), oAuth2UserInfo.getName(), oAuth2UserInfo.getEmail());
+
         User user = userRepository.findByProviderAndProviderId(provider, oAuth2UserInfo.getId())
                 .map(entity -> {
+                    log.info("Existing user found: {}", entity.getEmail());
                     entity.update(oAuth2UserInfo.getName(), oAuth2UserInfo.getImageUrl());
                     entity.updateLastLogin();
                     return entity;
@@ -59,6 +63,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     String email = oAuth2UserInfo.getEmail();
                     if (email == null || email.isEmpty()) {
                         email = oAuth2UserInfo.getId() + "@" + registrationId.toLowerCase() + ".oauth";
+                        log.info("Generated email for OAuth2 user: {}", email);
                     }
 
                     User newUser = User.builder()
@@ -70,9 +75,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                             .role(User.Role.USER)
                             .build();
                     newUser.updateLastLogin();
+                    log.info("New user created: {}", newUser.getEmail());
                     return newUser;
                 });
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        log.info("User saved with email: {}", savedUser.getEmail());
+        return savedUser;
     }
 }

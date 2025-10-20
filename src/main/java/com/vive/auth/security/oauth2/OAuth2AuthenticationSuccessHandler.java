@@ -42,12 +42,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     protected String determineTargetUrl(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) {
-        String accessToken = tokenProvider.generateAccessToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(authentication);
+        log.info("OAuth2 success - Authentication principal: {}", authentication.getPrincipal().getClass().getName());
+        log.info("OAuth2 success - Authentication name: {}", authentication.getName());
 
-        return UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
-                .build().toUriString();
+        try {
+            String accessToken = tokenProvider.generateAccessToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(authentication);
+
+            log.info("OAuth2 tokens generated successfully");
+
+            return UriComponentsBuilder.fromUriString(redirectUri)
+                    .queryParam("accessToken", accessToken)
+                    .queryParam("refreshToken", refreshToken)
+                    .build().toUriString();
+        } catch (Exception e) {
+            log.error("Failed to generate tokens", e);
+            return UriComponentsBuilder.fromUriString(redirectUri)
+                    .queryParam("error", "token_generation_failed")
+                    .build().toUriString();
+        }
     }
 }
