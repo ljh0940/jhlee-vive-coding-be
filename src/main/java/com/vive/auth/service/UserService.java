@@ -27,7 +27,11 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        user.update(request.getName(), user.getPicture());
+        // name과 picture 모두 업데이트 (null이면 기존 값 유지)
+        String newName = request.getName() != null ? request.getName() : user.getName();
+        String newPicture = request.getPicture() != null ? request.getPicture() : user.getPicture();
+
+        user.update(newName, newPicture);
         User updatedUser = userRepository.save(user);
 
         return UserResponse.from(updatedUser);
