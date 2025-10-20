@@ -19,13 +19,29 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // JWT에서 호출될 때는 provider 정보가 없으므로 email로만 찾음
-        // 같은 이메일로 여러 provider가 있을 수 있으므로 첫 번째 활성 사용자 반환
-        User user = userRepository.findByEmail(email)
-                .stream()
-                .filter(User::getActive)
-                .findFirst()
+        // 로컬 로그인용 - LOCAL provider로만 찾기
+        User user = userRepository.findByEmailAndProvider(email, User.Provider.LOCAL)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        // 비활성화된 사용자는 로그인 불가
+        if (!user.getActive()) {
+            throw new UsernameNotFoundException("User account is disabled");
+        }
+
+        return UserPrincipal.create(user);
+    }
+
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsernameAndProvider(String email, String provider) throws UsernameNotFoundException {
+        // JWT 인증용 - email과 provider로 찾기
+        User.Provider userProvider = User.Provider.valueOf(provider);
+        User user = userRepository.findByEmailAndProvider(email, userProvider)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email + " and provider: " + provider));
+
+        // 비활성화된 사용자는 인증 불가
+        if (!user.getActive()) {
+            throw new UsernameNotFoundException("User account is disabled");
+        }
 
         return UserPrincipal.create(user);
     }

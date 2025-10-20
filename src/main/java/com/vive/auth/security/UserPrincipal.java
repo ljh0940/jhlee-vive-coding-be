@@ -19,6 +19,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private Long id;
     private String email;
     private String password;
+    private String provider;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
@@ -38,6 +39,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getProvider().name(),
                 authorities,
                 null
         );
@@ -49,6 +51,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 userPrincipal.getId(),
                 userPrincipal.getEmail(),
                 userPrincipal.getPassword(),
+                userPrincipal.getProvider(),
                 userPrincipal.getAuthorities(),
                 attributes
         );

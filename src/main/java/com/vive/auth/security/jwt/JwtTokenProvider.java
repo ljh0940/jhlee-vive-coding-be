@@ -46,9 +46,17 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
+        // UserPrincipal에서 추가 정보 가져오기
+        Object principal = authentication.getPrincipal();
+        String provider = "LOCAL"; // 기본값
+        if (principal instanceof com.vive.auth.security.UserPrincipal userPrincipal) {
+            provider = userPrincipal.getProvider();
+        }
+
         return Jwts.builder()
                 .subject(authentication.getName())
                 .claim("authorities", authorities)
+                .claim("provider", provider)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
@@ -63,6 +71,16 @@ public class JwtTokenProvider {
                 .getPayload();
 
         return claims.getSubject();
+    }
+
+    public String getProviderFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("provider", String.class);
     }
 
     public boolean validateToken(String token) {
