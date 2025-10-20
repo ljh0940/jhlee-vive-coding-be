@@ -2,16 +2,15 @@ package com.vive.auth.security.oauth2;
 
 import com.vive.auth.entity.User;
 import com.vive.auth.repository.UserRepository;
+import com.vive.auth.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Map;
 
 @Slf4j
@@ -44,13 +43,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User user = saveOrUpdate(oAuth2UserInfo, registrationId);
             log.info("User saved/updated successfully - ID: {}, Email: {}", user.getId(), user.getEmail());
 
-            DefaultOAuth2User result = new DefaultOAuth2User(
-                    Collections.singleton(() -> "ROLE_" + user.getRole().name()),
-                    oAuth2User.getAttributes(),
-                    userNameAttributeName);
+            UserPrincipal userPrincipal = UserPrincipal.create(user, oAuth2User.getAttributes());
+            log.info("UserPrincipal created - Username: {}", userPrincipal.getUsername());
 
             log.info("=== OAuth2 User Loading Completed ===");
-            return result;
+            return userPrincipal;
         } catch (Exception e) {
             log.error("Error loading OAuth2 user", e);
             log.error("Error type: {}", e.getClass().getName());
@@ -80,8 +77,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     })
                     .orElseGet(() -> {
                         log.info("New user, creating...");
+                        // 이메일이 없을 경우 providerId@provider.local 형식으로 생성
+                        String email = oAuth2UserInfo.getEmail();
+                        if (email == null || email.isEmpty()) {
+                            email = oAuth2UserInfo.getId() + "@" + registrationId.toLowerCase() + ".oauth";
+                            log.info("Email not provided by OAuth2 provider, using generated email: {}", email);
+                        }
+
                         return User.builder()
-                                .email(oAuth2UserInfo.getEmail())
+                                .email(email)
                                 .name(oAuth2UserInfo.getName())
                                 .picture(oAuth2UserInfo.getImageUrl())
                                 .provider(provider)
