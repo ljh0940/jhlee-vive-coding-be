@@ -31,16 +31,16 @@ public class LotteryService {
     private static final LocalDate FIRST_DRAW_DATE = LocalDate.of(2002, 12, 7);
 
     /**
-     * 최근 5개 로또 당첨번호 조회 (Redis에서)
+     * 최근 5개 로또 당첨번호 조회 (DB에서)
      */
     public LotteryResponse getRecentLotteryNumbers() {
-        log.info("Fetching recent lottery numbers from Redis...");
+        log.info("Fetching recent lottery numbers from DB...");
 
         try {
             List<LotteryNumber> allNumbers = lotteryNumberRepository.findAll();
 
             if (allNumbers.isEmpty()) {
-                log.warn("No lottery data found in Redis, using fallback data");
+                log.warn("No lottery data found in DB, using fallback data");
                 return LotteryResponse.builder()
                         .success(false)
                         .data(getFallbackData())
@@ -97,9 +97,8 @@ public class LotteryService {
             LotteryResponse.LotteryNumber lotteryData = fetchLotteryNumberFromApi(round);
 
             if (lotteryData != null) {
-                // Redis에 저장
+                // DB에 저장
                 LotteryNumber entity = LotteryNumber.builder()
-                        .id("lottery:" + lotteryData.getRound())
                         .round(lotteryData.getRound())
                         .drawDate(lotteryData.getDate())
                         .number1(lotteryData.getNumbers().get(0))
@@ -109,11 +108,10 @@ public class LotteryService {
                         .number5(lotteryData.getNumbers().get(4))
                         .number6(lotteryData.getNumbers().get(5))
                         .bonusNumber(lotteryData.getBonus())
-                        .createdAt(LocalDateTime.now())
                         .build();
 
                 lotteryNumberRepository.save(entity);
-                log.info("Saved lottery number for round {} in Redis", round);
+                log.info("Saved lottery number for round {} in DB", round);
             }
         }
 
