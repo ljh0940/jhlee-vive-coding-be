@@ -49,7 +49,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User.Provider provider = User.Provider.valueOf(registrationId.toUpperCase());
 
         User user = userRepository.findByProviderAndProviderId(provider, oAuth2UserInfo.getId())
-                .map(entity -> entity.update(oAuth2UserInfo.getName(), oAuth2UserInfo.getImageUrl()))
+                .map(entity -> {
+                    entity.update(oAuth2UserInfo.getName(), oAuth2UserInfo.getImageUrl());
+                    entity.updateLastLogin();
+                    return entity;
+                })
                 .orElseGet(() -> {
                     // 이메일이 없을 경우 providerId@provider.oauth 형식으로 생성
                     String email = oAuth2UserInfo.getEmail();
@@ -57,7 +61,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         email = oAuth2UserInfo.getId() + "@" + registrationId.toLowerCase() + ".oauth";
                     }
 
-                    return User.builder()
+                    User newUser = User.builder()
                             .email(email)
                             .name(oAuth2UserInfo.getName())
                             .picture(oAuth2UserInfo.getImageUrl())
@@ -65,6 +69,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                             .providerId(oAuth2UserInfo.getId())
                             .role(User.Role.USER)
                             .build();
+                    newUser.updateLastLogin();
+                    return newUser;
                 });
 
         return userRepository.save(user);

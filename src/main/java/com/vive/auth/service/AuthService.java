@@ -62,7 +62,7 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse signIn(SignInRequest request) {
         // 사용자 인증
         Authentication authentication = authenticationManager.authenticate(
@@ -71,6 +71,12 @@ public class AuthService {
                         request.getPassword()
                 )
         );
+
+        // 마지막 로그인 시간 업데이트
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+        user.updateLastLogin();
+        userRepository.save(user);
 
         // JWT 토큰 생성
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);

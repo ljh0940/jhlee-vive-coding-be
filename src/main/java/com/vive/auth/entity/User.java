@@ -51,6 +51,8 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    private LocalDateTime lastLoginAt;
+
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     @Builder.Default
     private Boolean active = true;
@@ -67,6 +69,10 @@ public class User {
 
     public void activate() {
         this.active = true;
+    }
+
+    public void updateLastLogin() {
+        this.lastLoginAt = LocalDateTime.now();
     }
 
     public enum Role {

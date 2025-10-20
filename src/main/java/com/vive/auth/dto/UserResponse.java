@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -17,6 +19,7 @@ public class UserResponse {
     private String picture;
     private String role;
     private String provider;
+    private LocalDateTime lastLoginAt;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -26,6 +29,7 @@ public class UserResponse {
                 .picture(user.getPicture())
                 .role(user.getRole().name())
                 .provider(user.getProvider().name())
+                .lastLoginAt(user.getLastLoginAt())
                 .build();
     }
 }

@@ -25,6 +25,7 @@ CREATE TABLE users (
     provider_id VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
+    last_login_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE NOT NULL,
     CONSTRAINT users_role_check CHECK (role IN ('USER', 'ADMIN')),
     CONSTRAINT users_provider_check CHECK (provider IN ('KAKAO', 'LOCAL'))
