@@ -28,49 +28,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        try {
-            log.info("=== OAuth2 Authentication Success Handler Started ===");
-            log.info("User authenticated: {}", authentication.getName());
-            log.info("Authorities: {}", authentication.getAuthorities());
+        String targetUrl = determineTargetUrl(request, response, authentication);
 
-            String targetUrl = determineTargetUrl(request, response, authentication);
-
-            if (response.isCommitted()) {
-                log.warn("Response has already been committed. Unable to redirect to " + targetUrl);
-                return;
-            }
-
-            log.info("OAuth2 authentication successful. Redirecting to: {}", targetUrl);
-            clearAuthenticationAttributes(request);
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
-            log.info("=== OAuth2 Redirect Completed ===");
-        } catch (Exception e) {
-            log.error("Error in OAuth2 success handler", e);
-            throw e;
+        if (response.isCommitted()) {
+            log.warn("Response has already been committed. Unable to redirect to " + targetUrl);
+            return;
         }
+
+        clearAuthenticationAttributes(request);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     protected String determineTargetUrl(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) {
-        try {
-            log.info("Generating tokens for user: {}", authentication.getName());
-            String accessToken = tokenProvider.generateAccessToken(authentication);
-            String refreshToken = tokenProvider.generateRefreshToken(authentication);
+        String accessToken = tokenProvider.generateAccessToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(authentication);
 
-            log.info("Tokens generated successfully");
-            log.info("Configured redirect URI: {}", redirectUri);
-
-            String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-                    .queryParam("accessToken", accessToken)
-                    .queryParam("refreshToken", refreshToken)
-                    .build().toUriString();
-
-            log.info("Target URL constructed: {}", targetUrl);
-            return targetUrl;
-        } catch (Exception e) {
-            log.error("Error generating target URL", e);
-            throw e;
-        }
+        return UriComponentsBuilder.fromUriString(redirectUri)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .build().toUriString();
     }
 }
