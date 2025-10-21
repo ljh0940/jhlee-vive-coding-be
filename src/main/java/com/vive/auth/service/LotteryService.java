@@ -14,8 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
+import java.time.temporal.WeekFields;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class LotteryService {
 
     private final LotteryNumberRepository lotteryNumberRepository;
+    private final com.vive.auth.repository.WeeklyRecommendationRepository weeklyRecommendationRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -216,5 +217,154 @@ public class LotteryService {
                 .round(1150).date("2024.02.24")
                 .numbers(Arrays.asList(4, 9, 18, 24, 32, 45)).bonus(21).build()
         );
+    }
+
+    /**
+     * 이번 주 추천 번호 조회 (없으면 생성)
+     */
+    @Transactional
+    public com.vive.auth.entity.WeeklyRecommendation getWeeklyRecommendations() {
+        String weekKey = getCurrentWeekKey();
+
+        return weeklyRecommendationRepository.findByWeekKey(weekKey)
+                .orElseGet(() -> generateWeeklyRecommendations(weekKey));
+    }
+
+    /**
+     * 주차별 추천 번호 생성
+     */
+    @Transactional
+    public com.vive.auth.entity.WeeklyRecommendation generateWeeklyRecommendations(String weekKey) {
+        log.info("Generating weekly recommendations for week: {}", weekKey);
+
+        // 역대 당첨번호 조합 Set 생성
+        Set<String> winningNumbersSet = getAllWinningNumbersSet();
+
+        // 5개의 유니크한 번호 생성
+        List<com.vive.auth.entity.WeeklyRecommendation.RecommendationSet> recommendations = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            com.vive.auth.entity.WeeklyRecommendation.RecommendationSet recommendationSet = generateUniqueNumberSet(winningNumbersSet);
+            recommendations.add(recommendationSet);
+        }
+
+        // Redis에 저장
+        com.vive.auth.entity.WeeklyRecommendation weeklyRecommendation = com.vive.auth.entity.WeeklyRecommendation.builder()
+                .id("weekly:" + weekKey)
+                .weekKey(weekKey)
+                .generatedAt(LocalDateTime.now())
+                .recommendations(recommendations)
+                .build();
+
+        weeklyRecommendationRepository.save(weeklyRecommendation);
+        log.info("Successfully generated and saved {} recommendations for week {}", recommendations.size(), weekKey);
+
+        return weeklyRecommendation;
+    }
+
+    /**
+     * 역대 당첨번호 조합 Set 생성
+     */
+    private Set<String> getAllWinningNumbersSet() {
+        List<LotteryNumber> allNumbers = lotteryNumberRepository.findAll();
+
+        return allNumbers.stream()
+                .map(this::numbersToKey)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 번호 조합을 문자열 키로 변환
+     */
+    private String numbersToKey(LotteryNumber lotteryNumber) {
+        List<Integer> numbers = Arrays.asList(
+            lotteryNumber.getNumber1(),
+            lotteryNumber.getNumber2(),
+            lotteryNumber.getNumber3(),
+            lotteryNumber.getNumber4(),
+            lotteryNumber.getNumber5(),
+            lotteryNumber.getNumber6()
+        );
+        return numbers.stream()
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+    }
+
+    private String numbersToKey(List<Integer> numbers) {
+        return numbers.stream()
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+    }
+
+    /**
+     * 역대 당첨번호와 겹치지 않는 유니크한 번호 세트 생성
+     */
+    private com.vive.auth.entity.WeeklyRecommendation.RecommendationSet generateUniqueNumberSet(Set<String> winningNumbersSet) {
+        Random random = new Random();
+        int maxAttempts = 1000;
+        int attempts = 0;
+
+        while (attempts < maxAttempts) {
+            // 6개의 메인 번호 생성
+            List<Integer> numbers = new ArrayList<>();
+            while (numbers.size() < 6) {
+                int randomNum = random.nextInt(45) + 1;
+                if (!numbers.contains(randomNum)) {
+                    numbers.add(randomNum);
+                }
+            }
+            Collections.sort(numbers);
+
+            // 역대 당첨번호와 비교
+            String key = numbersToKey(numbers);
+            if (!winningNumbersSet.contains(key)) {
+                // 보너스 번호 생성 (메인 번호와 중복되지 않게)
+                int bonusNumber;
+                do {
+                    bonusNumber = random.nextInt(45) + 1;
+                } while (numbers.contains(bonusNumber));
+
+                return com.vive.auth.entity.WeeklyRecommendation.RecommendationSet.builder()
+                        .numbers(numbers)
+                        .bonusNumber(bonusNumber)
+                        .build();
+            }
+
+            attempts++;
+        }
+
+        // 최대 시도 후에도 못 찾으면 일반 번호 반환
+        log.warn("Could not find unique number set after {} attempts, returning random numbers", maxAttempts);
+        List<Integer> numbers = new ArrayList<>();
+        Random rand = new Random();
+        while (numbers.size() < 6) {
+            int randomNum = rand.nextInt(45) + 1;
+            if (!numbers.contains(randomNum)) {
+                numbers.add(randomNum);
+            }
+        }
+        Collections.sort(numbers);
+
+        int bonusNumber;
+        do {
+            bonusNumber = rand.nextInt(45) + 1;
+        } while (numbers.contains(bonusNumber));
+
+        return com.vive.auth.entity.WeeklyRecommendation.RecommendationSet.builder()
+                .numbers(numbers)
+                .bonusNumber(bonusNumber)
+                .build();
+    }
+
+    /**
+     * 현재 주차 키 반환 (예: "2024-W01")
+     */
+    private String getCurrentWeekKey() {
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int year = now.getYear();
+        int weekNumber = now.get(weekFields.weekOfWeekBasedYear());
+        return String.format("%d-W%02d", year, weekNumber);
     }
 }

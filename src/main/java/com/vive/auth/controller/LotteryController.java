@@ -24,4 +24,11 @@ public class LotteryController {
         LotteryResponse response = lotteryService.getRecentLotteryNumbers();
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "이번 주 추천 로또 번호 조회", description = "역대 당첨번호와 겹치지 않는 이번 주의 추천 번호 5개를 조회합니다.")
+    @GetMapping("/weekly-recommendations")
+    public ResponseEntity<com.vive.auth.entity.WeeklyRecommendation> getWeeklyRecommendations() {
+        com.vive.auth.entity.WeeklyRecommendation recommendations = lotteryService.getWeeklyRecommendations();
+        return ResponseEntity.ok(recommendations);
+    }
 }
