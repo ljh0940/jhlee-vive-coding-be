@@ -225,8 +225,9 @@ public class LotteryService {
     @Transactional
     public com.vive.auth.entity.WeeklyRecommendation getWeeklyRecommendations() {
         String weekKey = getCurrentWeekKey();
+        String id = "weekly:" + weekKey;
 
-        return weeklyRecommendationRepository.findByWeekKey(weekKey)
+        return weeklyRecommendationRepository.findById(id)
                 .orElseGet(() -> generateWeeklyRecommendations(weekKey));
     }
 
