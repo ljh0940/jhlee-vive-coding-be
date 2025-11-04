@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 @Slf4j
 @Configuration
-@Profile("railway")
+@Profile("prod")
 public class DatabaseConfig {
 
     @Value("${DATABASE_URL:}")
