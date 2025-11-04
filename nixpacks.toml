@@ -8,4 +8,4 @@ cmds = ['chmod +x ./gradlew']
 cmds = ['./gradlew clean bootJar -x test --no-daemon --info']
 
 [start]
-cmd = 'java -Dserver.port=$PORT -Dspring.profiles.active=railway -jar $(ls build/libs/*-SNAPSHOT.jar | grep -v plain)'
+cmd = 'java -Dserver.port=$PORT -Dspring.profiles.active=prod -jar $(ls build/libs/*-SNAPSHOT.jar | grep -v plain)'
